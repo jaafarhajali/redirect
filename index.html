@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SportsHub - Reset Password</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .app-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 30px;
+        }
+        .status {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .countdown {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2196F3;
+            margin: 20px 0;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .button {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(33, 150, 243, 0.3);
+        }
+        .manual-link {
+            background-color: #f5f5f5;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 14px;
+            color: #2196F3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .manual-link:hover {
+            background-color: #e3f2fd;
+            border-color: #2196F3;
+        }
+        .instructions {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 14px;
+            color: #666;
+        }
+        .instructions h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: #f44336;
+            background-color: #ffebee;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏃‍♂️</div>
+        <div class="app-name">SportsHub</div>
+        
+        <div id="loading-screen">
+            <div class="status">Opening your app...</div>
+            <div class="countdown" id="countdown">3</div>
+            <div style="color: #666; font-size: 14px;">Please wait</div>
+        </div>
+        
+        <div id="manual-screen" class="hidden">
+            <div class="status">Click to open SportsHub app</div>
+            <button class="button" onclick="openApp()">
+                📱 Open SportsHub App
+            </button>
+            
+            <div class="instructions">
+                <h3>App not opening?</h3>
+                <ol>
+                    <li>Make sure SportsHub app is installed</li>
+                    <li>Click the link below manually:</li>
+                </ol>
+                <div class="manual-link" id="deepLink" onclick="copyToClipboard()">
+                    Click to copy link
+                </div>
+                <div style="font-size: 12px; color: #999; margin-top: 10px;">
+                    Tap the link above to copy, then paste in your browser
+                </div>
+            </div>
+        </div>
+        
+        <div id="error-screen" class="hidden">
+            <div class="error">
+                <strong>Invalid Reset Link</strong><br>
+                Please request a new password reset from the app.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = null;
+        let deepLink = null;
+
+        function getTokenFromUrl() {
+            // Try URL parameter first: ?token=abc123
+            const urlParams = new URLSearchParams(window.location.search);
+            let token = urlParams.get('token');
+            
+            // If no parameter, try path: /redirect/abc123
+            if (!token) {
+                const path = window.location.pathname;
+                const pathParts = path.split('/');
+                token = pathParts[pathParts.length - 1];
+                if (token === 'redirect' || token === '') {
+                    token = null;
+                }
+            }
+            
+            return token;
+        }
+
+        function openApp() {
+            if (!deepLink) return;
+            
+            console.log('Opening app with:', deepLink);
+            
+            // Try to open the app
+            window.location.href = deepLink;
+            
+            // Fallback for Android - try again after delay
+            setTimeout(() => {
+                window.location.href = deepLink;
+            }, 1000);
+        }
+
+        function copyToClipboard() {
+            if (!deepLink) return;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(deepLink).then(() => {
+                    alert('Link copied! Paste it in your browser address bar.');
+                });
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = deepLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Link copied! Paste it in your browser address bar.');
+            }
+        }
+
+        function showManualScreen() {
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('manual-screen').classList.remove('hidden');
+            document.getElementById('deepLink').textContent = deepLink;
+        }
+
+        function showErrorScreen() {
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('error-screen').classList.remove('hidden');
+        }
+
+        function startCountdown() {
+            let count = 3;
+            const countdownElement = document.getElementById('countdown');
+            
+            const timer = setInterval(() => {
+                count--;
+                countdownElement.textContent = count;
+                
+                if (count <= 0) {
+                    clearInterval(timer);
+                    openApp();
+                    
+                    // Show manual screen after 2 seconds
+                    setTimeout(showManualScreen, 2000);
+                }
+            }, 1000);
+        }
+
+        // Initialize when page loads
+        window.onload = function() {
+            token = getTokenFromUrl();
+            console.log('Token detected:', token);
+            
+            if (token && token !== 'no-token' && token.length > 5) {
+                deepLink = `sportshub://reset_password/${token}`;
+                startCountdown();
+            } else {
+                showErrorScreen();
+            }
+        };
+    </script>
+</body>
+</html>
